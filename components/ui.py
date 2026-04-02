@@ -1,6 +1,6 @@
 # ============================================================
 # components/ui.py
-# Fixed navigation - Clickable steps now work reliably
+# Reliable navigation using session_state + unique keys
 # ============================================================
 
 import streamlit as st
@@ -45,7 +45,6 @@ def hero():
 
 
 def pipeline_stepper():
-    """Visual stepper only (no navigation)"""
     current = st.session_state.get("step", 0)
     total = len(PIPELINE_STEPS)
 
@@ -117,7 +116,7 @@ def progress_tracker():
         """, unsafe_allow_html=True)
 
 
-# ── Sidebar with Reliable Navigation ────────────────────────
+# ── Main Sidebar with Reliable Navigation ───────────────────
 def sidebar() -> tuple:
     with st.sidebar:
         st.markdown("""
@@ -152,13 +151,12 @@ def sidebar() -> tuple:
         current_step = st.session_state.get("step", 0)
 
         for i, (icon, label) in enumerate(PIPELINE_STEPS):
-            clicked = st.button(
+            if st.button(
                 f"{icon} {label}",
-                key=f"nav_{i}",
+                key=f"step_nav_{i}",           # Unique key is very important
                 use_container_width=True,
                 type="primary" if i == current_step else "secondary"
-            )
-            if clicked:
+            ):
                 st.session_state.step = i
                 st.rerun()
 
@@ -171,6 +169,6 @@ def sidebar() -> tuple:
             st.success("✅ Everything has been reset successfully!", icon="🔄")
             st.rerun()
 
-        st.caption("Click any step above to jump")
+        st.caption("Click any step to jump")
 
     return uploaded, xp
