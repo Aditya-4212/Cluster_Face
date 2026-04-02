@@ -8,7 +8,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-from scipy.stats import zscore
+#from scipy.stats import zscore
+
+import numpy as np
+
+def zscore(X):
+    return (X - np.mean(X, axis=0)) / np.std(X, axis=0)
 
 from sklearn.cluster import (
     KMeans, DBSCAN, AgglomerativeClustering,
