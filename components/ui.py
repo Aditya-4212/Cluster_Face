@@ -4,9 +4,7 @@
 # ============================================================
 
 import streamlit as st
-
-# ── Imports ────────────────────────────────────────────────
-from components.ui import hero, pipeline_stepper, sidebar
+from config.settings import PIPELINE_STEPS, SESSION_DEFAULTS
 from pipeline.steps import (
     step_load,
     step_eda,
