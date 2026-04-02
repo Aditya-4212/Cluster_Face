@@ -1,18 +1,16 @@
 # ============================================================
 # components/ui.py
-# Clean UI with clickable section buttons (no Back/Next needed)
+# Fixed navigation - Clickable steps now work reliably
 # ============================================================
 
 import streamlit as st
 from config.settings import PIPELINE_STEPS, SESSION_DEFAULTS
 
 
-# ── Section divider ─────────────────────────────────────────
 def section(label: str):
     st.markdown(f'<div class="sec">◆ {label}</div>', unsafe_allow_html=True)
 
 
-# ── Contextual explanation boxes ────────────────────────────
 def explain(title: str, body: str, kind: str = "learn"):
     xp = st.session_state.get("xp", "🟢 Beginner")
     if xp == "🔴 Advanced" and kind == "learn":
@@ -34,7 +32,6 @@ def explain(title: str, body: str, kind: str = "learn"):
     """, unsafe_allow_html=True)
 
 
-# ── Hero banner ─────────────────────────────────────────────
 def hero():
     st.markdown("""
     <div class="hero">
@@ -47,9 +44,8 @@ def hero():
     """, unsafe_allow_html=True)
 
 
-# ── Pipeline stepper bar (visual only now) ──────────────────
 def pipeline_stepper():
-    """Visual progress stepper - no navigation buttons"""
+    """Visual stepper only (no navigation)"""
     current = st.session_state.get("step", 0)
     total = len(PIPELINE_STEPS)
 
@@ -68,16 +64,13 @@ def pipeline_stepper():
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
 
-    # Show current step name
     icon, name = PIPELINE_STEPS[current]
     st.caption(f"**Current Step:** {icon} {name}")
 
 
-# ── Metric strip ────────────────────────────────────────────
 def metric_strip(metrics: dict, model_name: str):
     if not metrics:
         return
-
     color_map = {
         "Clusters": "#a78bfa",
         "Silhouette ↑": "#34d399",
@@ -85,9 +78,7 @@ def metric_strip(metrics: dict, model_name: str):
         "Calinski-Harabasz ↑": "#fb7185",
         "Noise pts": "#6b7090",
     }
-
     tiles = [("Model", model_name.split("·")[-1].strip() if "·" in model_name else model_name, "#22d3ee")]
-
     for k, v in metrics.items():
         tiles.append((k, v, color_map.get(k, "#e2e4f0")))
 
@@ -102,7 +93,6 @@ def metric_strip(metrics: dict, model_name: str):
         """, unsafe_allow_html=True)
 
 
-# ── Progress tracker ────────────────────────────────────────
 def progress_tracker():
     section("Pipeline Progress")
     steps_state = [
@@ -113,7 +103,6 @@ def progress_tracker():
         ("🤖 Cluster",       st.session_state.get("clustering_done", False)),
         ("📈 Results",       st.session_state.get("clustering_done", False)),
     ]
-
     cols = st.columns(len(steps_state))
     for i, (name, done) in enumerate(steps_state):
         clr = "#34d399" if done else "#2e3050"
@@ -128,7 +117,7 @@ def progress_tracker():
         """, unsafe_allow_html=True)
 
 
-# ── Sidebar with Clickable Section Buttons ──────────────────
+# ── Sidebar with Reliable Navigation ────────────────────────
 def sidebar() -> tuple:
     with st.sidebar:
         st.markdown("""
@@ -158,30 +147,30 @@ def sidebar() -> tuple:
 
         st.divider()
 
-        # ── Clickable Section Buttons (Main Navigation) ──
+        # Reliable Step Navigation
         st.markdown("**📍 Go to Step**")
         current_step = st.session_state.get("step", 0)
 
         for i, (icon, label) in enumerate(PIPELINE_STEPS):
-            if st.button(
+            clicked = st.button(
                 f"{icon} {label}",
-                key=f"nav_step_{i}",
+                key=f"nav_{i}",
                 use_container_width=True,
                 type="primary" if i == current_step else "secondary"
-            ):
+            )
+            if clicked:
                 st.session_state.step = i
                 st.rerun()
 
         st.divider()
 
-        # Reset Button with clear feedback
+        # Reset Button
         if st.button("🔄 Reset All & Start Fresh", use_container_width=True, type="secondary"):
             for k, v in SESSION_DEFAULTS.items():
                 st.session_state[k] = v
             st.success("✅ Everything has been reset successfully!", icon="🔄")
-            st.info("Starting fresh from Step 1.", icon="ℹ️")
             st.rerun()
 
-        st.caption("ClusterForge Pro • Click any step above to jump")
+        st.caption("Click any step above to jump")
 
     return uploaded, xp
