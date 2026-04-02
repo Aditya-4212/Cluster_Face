@@ -119,39 +119,47 @@ def progress_tracker():
 # ── Sidebar with Most Reliable Navigation ───────────────────
 def sidebar() -> tuple:
     with st.sidebar:
-        st.markdown("""
-        <div style="font-family:IBM Plex Mono;font-size:0.65rem;letter-spacing:0.15em;
-        text-transform:uppercase;color:#22d3ee;margin-bottom:1rem;">▸ CLUSTERFORGE PRO</div>
-        """, unsafe_allow_html=True)
 
-        st.markdown("**📤 Dataset Upload**")
-        uploaded = st.file_uploader(
-            "Choose CSV file",
-            type=["csv"],
-            label_visibility="collapsed",
-            help="Supports numeric and categorical columns"
+        st.markdown("### ▸ CLUSTERFORGE PRO")
+
+        # Upload
+        uploaded = st.file_uploader("Upload CSV", type=["csv"])
+
+        # Experience
+        xp = st.radio(
+            "Experience",
+            ["🟢 Beginner", "🟡 Intermediate", "🔴 Advanced"],
+            key="xp"
         )
-
-        if uploaded:
-            st.success(f"✓ {uploaded.name}", icon="📄")
 
         st.divider()
 
-        st.markdown("**🎯 Experience Level**")
-        xp = st.radio(
-            "Select your level",
-            options=["🟢 Beginner", "🟡 Intermediate", "🔴 Advanced"],
-            label_visibility="collapsed",
-            key="xp_selector"
-        )
+        st.markdown("### 📍 Navigate")
 
-        # Update session state when level changes
-        if xp != st.session_state.get("xp"):
-            st.session_state.xp = xp
+        # ✅ FIXED NAVIGATION USING CALLBACK
+        def set_step(i):
+            st.session_state.step = i
+
+        current = st.session_state.get("step", 0)
+
+        for i, (icon, label) in enumerate(PIPELINE_STEPS):
+            st.button(
+                f"{icon} {label}",
+                key=f"nav_{i}",
+                on_click=set_step,      # ✅ IMPORTANT
+                args=(i,),              # ✅ IMPORTANT
+                use_container_width=True
+            )
+
+        st.divider()
+
+        # Reset
+        if st.button("🔄 Reset"):
+            for k, v in SESSION_DEFAULTS.items():
+                st.session_state[k] = v
             st.rerun()
 
-        st.divider()
-
+    return uploaded, xp
         # ================== RELIABLE NAVIGATION ==================
         st.markdown("**📍 Go to Step**")
 
