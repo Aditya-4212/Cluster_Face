@@ -1,6 +1,6 @@
 # ============================================================
 # components/ui.py
-# FINAL VERSION - Reliable Sidebar Navigation
+# CLEAN FIXED VERSION (NO INDENTATION ERROR)
 # ============================================================
 
 import streamlit as st
@@ -22,7 +22,10 @@ def explain(title: str, body: str, kind: str = "learn"):
         "info":    ("insight",      "",            ""),
         "success": ("success-box",  "",            ""),
     }
-    box_cls, title_cls, body_cls = class_map.get(kind, ("learn-box", "learn-title", "learn-body"))
+
+    box_cls, title_cls, body_cls = class_map.get(
+        kind, ("learn-box", "learn-title", "learn-body")
+    )
 
     st.markdown(f"""
     <div class="{box_cls}">
@@ -53,7 +56,7 @@ def pipeline_stepper():
     html = '<div class="pipeline-nav">'
     for i, (icon, label) in enumerate(PIPELINE_STEPS):
         active = "active" if current == i else ""
-        done   = "done"   if current > i else ""
+        done   = "done" if current > i else ""
         html += f"""
         <div class="step-btn {active} {done}">
           <span class="step-num">{i+1}</span>
@@ -61,6 +64,7 @@ def pipeline_stepper():
           <span class="step-label">{label}</span>
         </div>"""
     html += "</div>"
+
     st.markdown(html, unsafe_allow_html=True)
 
     icon, name = PIPELINE_STEPS[current]
@@ -70,6 +74,7 @@ def pipeline_stepper():
 def metric_strip(metrics: dict, model_name: str):
     if not metrics:
         return
+
     color_map = {
         "Clusters": "#a78bfa",
         "Silhouette ↑": "#34d399",
@@ -77,7 +82,13 @@ def metric_strip(metrics: dict, model_name: str):
         "Calinski-Harabasz ↑": "#fb7185",
         "Noise pts": "#6b7090",
     }
-    tiles = [("Model", model_name.split("·")[-1].strip() if "·" in model_name else model_name, "#22d3ee")]
+
+    tiles = [(
+        "Model",
+        model_name.split("·")[-1].strip() if "·" in model_name else model_name,
+        "#22d3ee"
+    )]
+
     for k, v in metrics.items():
         tiles.append((k, v, color_map.get(k, "#e2e4f0")))
 
@@ -94,18 +105,21 @@ def metric_strip(metrics: dict, model_name: str):
 
 def progress_tracker():
     section("Pipeline Progress")
+
     steps_state = [
-        ("📥 Load Data",     st.session_state.get("df_raw") is not None),
-        ("🔍 EDA",           st.session_state.get("eda_done", False)),
-        ("🧹 Clean",         st.session_state.get("preprocessing_done", False)),
-        ("⚙️ Features",      st.session_state.get("engineering_done", False)),
-        ("🤖 Cluster",       st.session_state.get("clustering_done", False)),
-        ("📈 Results",       st.session_state.get("clustering_done", False)),
+        ("📥 Load Data", st.session_state.get("df_raw") is not None),
+        ("🔍 EDA", st.session_state.get("eda_done", False)),
+        ("🧹 Clean", st.session_state.get("preprocessing_done", False)),
+        ("⚙️ Features", st.session_state.get("engineering_done", False)),
+        ("🤖 Cluster", st.session_state.get("clustering_done", False)),
+        ("📈 Results", st.session_state.get("clustering_done", False)),
     ]
+
     cols = st.columns(len(steps_state))
     for i, (name, done) in enumerate(steps_state):
         clr = "#34d399" if done else "#2e3050"
         sym = "✅" if done else "○"
+
         cols[i].markdown(f"""
         <div style="text-align:center;padding:0.9rem 0.5rem;background:#111225;
         border:1px solid {'#34d399' if done else '#1e2035'};border-radius:8px;">
@@ -116,16 +130,16 @@ def progress_tracker():
         """, unsafe_allow_html=True)
 
 
-# ── Sidebar with Most Reliable Navigation ───────────────────
+# ============================================================
+# ✅ FIXED SIDEBAR (ONLY ONE CLEAN VERSION)
+# ============================================================
 def sidebar() -> tuple:
     with st.sidebar:
 
         st.markdown("### ▸ CLUSTERFORGE PRO")
 
-        # Upload
         uploaded = st.file_uploader("Upload CSV", type=["csv"])
 
-        # Experience
         xp = st.radio(
             "Experience",
             ["🟢 Beginner", "🟡 Intermediate", "🔴 Advanced"],
@@ -133,58 +147,25 @@ def sidebar() -> tuple:
         )
 
         st.divider()
-
         st.markdown("### 📍 Navigate")
 
-        # ✅ FIXED NAVIGATION USING CALLBACK
         def set_step(i):
             st.session_state.step = i
-
-        current = st.session_state.get("step", 0)
 
         for i, (icon, label) in enumerate(PIPELINE_STEPS):
             st.button(
                 f"{icon} {label}",
                 key=f"nav_{i}",
-                on_click=set_step,      # ✅ IMPORTANT
-                args=(i,),              # ✅ IMPORTANT
+                on_click=set_step,
+                args=(i,),
                 use_container_width=True
             )
 
         st.divider()
 
-        # Reset
         if st.button("🔄 Reset"):
             for k, v in SESSION_DEFAULTS.items():
                 st.session_state[k] = v
             st.rerun()
-
-    return uploaded, xp
-        # ================== RELIABLE NAVIGATION ==================
-        st.markdown("**📍 Go to Step**")
-
-        current = st.session_state.get("step", 0)
-
-        for i, (icon, label) in enumerate(PIPELINE_STEPS):
-            # Use a unique key and check button state
-            if st.button(
-                f"{icon} {label}",
-                key=f"step_button_{i}",          # Very important unique key
-                use_container_width=True,
-                type="primary" if i == current else "secondary"
-            ):
-                st.session_state.step = i
-                st.rerun()                       # This should now work
-
-        st.divider()
-
-        # Reset Button
-        if st.button("🔄 Reset All & Start Fresh", use_container_width=True, type="secondary"):
-            for k, v in SESSION_DEFAULTS.items():
-                st.session_state[k] = v
-            st.success("✅ Everything has been reset successfully!", icon="🔄")
-            st.rerun()
-
-        st.caption("Click any step above to jump")
 
     return uploaded, xp
