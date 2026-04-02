@@ -1,7 +1,6 @@
 # ============================================================
 # components/ui.py
-# Reusable UI components for ClusterForge Pro
-# Clean, stable, and optimized for Streamlit Cloud
+# Clean UI with clickable section buttons (no Back/Next needed)
 # ============================================================
 
 import streamlit as st
@@ -15,10 +14,6 @@ def section(label: str):
 
 # ── Contextual explanation boxes ────────────────────────────
 def explain(title: str, body: str, kind: str = "learn"):
-    """
-    Smart explanation boxes that respect user experience level.
-    Advanced users see fewer tutorial-style boxes.
-    """
     xp = st.session_state.get("xp", "🟢 Beginner")
     if xp == "🔴 Advanced" and kind == "learn":
         return
@@ -52,15 +47,14 @@ def hero():
     """, unsafe_allow_html=True)
 
 
-# ── Pipeline stepper bar ────────────────────────────────────
+# ── Pipeline stepper bar (visual only now) ──────────────────
 def pipeline_stepper():
+    """Visual progress stepper - no navigation buttons"""
     current = st.session_state.get("step", 0)
     total = len(PIPELINE_STEPS)
 
-    # Progress bar
     st.progress((current + 1) / total)
 
-    # Horizontal stepper
     html = '<div class="pipeline-nav">'
     for i, (icon, label) in enumerate(PIPELINE_STEPS):
         active = "active" if current == i else ""
@@ -74,23 +68,13 @@ def pipeline_stepper():
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
 
-    # Back / Next buttons
-    col1, col2, col3 = st.columns([1, 6, 1])
-    with col1:
-        if current > 0:
-            if st.button("◀ Back", use_container_width=True):
-                st.session_state.step -= 1
-                st.rerun()
-    with col3:
-        if current < total - 1:
-            if st.button("Next ▶", use_container_width=True, type="primary"):
-                st.session_state.step += 1
-                st.rerun()
+    # Show current step name
+    icon, name = PIPELINE_STEPS[current]
+    st.caption(f"**Current Step:** {icon} {name}")
 
 
 # ── Metric strip ────────────────────────────────────────────
 def metric_strip(metrics: dict, model_name: str):
-    """Renders metric tiles at the top of Results step."""
     if not metrics:
         return
 
@@ -118,7 +102,7 @@ def metric_strip(metrics: dict, model_name: str):
         """, unsafe_allow_html=True)
 
 
-# ── Progress tracker (used in Learn step) ───────────────────
+# ── Progress tracker ────────────────────────────────────────
 def progress_tracker():
     section("Pipeline Progress")
     steps_state = [
@@ -144,9 +128,8 @@ def progress_tracker():
         """, unsafe_allow_html=True)
 
 
-# ── Sidebar ─────────────────────────────────────────────────
+# ── Sidebar with Clickable Section Buttons ──────────────────
 def sidebar() -> tuple:
-    """Sidebar with upload, experience level, and clean quick jump."""
     with st.sidebar:
         st.markdown("""
         <div style="font-family:IBM Plex Mono;font-size:0.65rem;letter-spacing:0.15em;
@@ -175,14 +158,14 @@ def sidebar() -> tuple:
 
         st.divider()
 
-        # ── Cleaner Quick Jump Section ──
-        st.markdown("**⚡ Quick Jump**")
+        # ── Clickable Section Buttons (Main Navigation) ──
+        st.markdown("**📍 Go to Step**")
         current_step = st.session_state.get("step", 0)
 
         for i, (icon, label) in enumerate(PIPELINE_STEPS):
             if st.button(
                 f"{icon} {label}",
-                key=f"quick_nav_{i}",
+                key=f"nav_step_{i}",
                 use_container_width=True,
                 type="primary" if i == current_step else "secondary"
             ):
@@ -191,11 +174,14 @@ def sidebar() -> tuple:
 
         st.divider()
 
+        # Reset Button with clear feedback
         if st.button("🔄 Reset All & Start Fresh", use_container_width=True, type="secondary"):
             for k, v in SESSION_DEFAULTS.items():
                 st.session_state[k] = v
+            st.success("✅ Everything has been reset successfully!", icon="🔄")
+            st.info("Starting fresh from Step 1.", icon="ℹ️")
             st.rerun()
 
-        st.caption("ClusterForge Pro • Interactive Clustering Pipeline")
+        st.caption("ClusterForge Pro • Click any step above to jump")
 
     return uploaded, xp
